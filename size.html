@@ -1,0 +1,316 @@
+<html>
+    <head>
+        <script type="text/javascript" src="//code.jquery.com/jquery-2.2.1.min.js"></script>
+        <script type="text/javascript" src="//cdn.jsdelivr.net/jquery.cookie/1.4.1/jquery.cookie.js"></script>
+        <script type="text/javascript">
+        "use strict";
+            $(document).ready(function() {
+                var symbolCurrencyMap = {
+                    AUDJPY: ["JPY",100,1],
+                    AUDNZD: ["NZD",10000,1],
+                    AUDUSD: ["USD",10000,1],
+                    CHFJPY: ["JPY",100,1],
+                    EURCAD: ["CAD",10000,1],
+                    EURCHF: ["CHF",10000,1],
+                    EURGBP: ["GBP",10000,1],
+                    EURJPY: ["JPY",100,1],
+                    EURUSD: ["USD",10000,1],
+                    GBPCHF: ["CHF",10000,1],
+                    GBPJPY: ["JPY",100,1],
+                    GBPNZD: ["NZD",10000,1],
+                    GBPUSD: ["USD",10000,1],
+                    NZDJPY: ["JPY",100,1],
+                    NZDUSD: ["USD",10000,1],
+                    USDCAD: ["CAD",10000,1],
+                    USDCHF: ["CHF",10000,1],
+                    USDJPY: ["JPY",100,1],
+                    XAGUSD: ["USD",100,1],
+                    XAUUSD: ["USD",10,1],
+                    Copper: ["USD",2000,1],
+                    XPDUSD: ["USD",10,1],
+                    XPTUSD: ["USD",10,1],
+                    UKOil: ["GBP",100,1],
+                    USOil: ["USD",100,1],
+                    AUS200: ["AUD",1,1],
+                    ESP35: ["EUR",1,1],
+                    FRA40: ["EUR",1,1],
+                    GER30: ["EUR",1,1],
+                    HKG33: ["HKD",1,1],
+                    ITA40: ["EUR",1,1],
+                    JPN225: ["JPY",1,1],
+                    NAS100: ["USD",1,1],
+                    SPX500: ["USD",1,1],
+                    SUI30: ["CHF",1,1],
+                    UK100: ["GBP",1,1],
+                    US30: ["USD",1,1],
+                    Bund: ["EUR",100,10],
+                    NGAS: ["USD",1000,1],
+                };
+
+                $('#entry').keyup(function() {
+                        $('#currentPriceTime').text('');
+                        });
+                $('#getCurrentPrice').click(function() {
+                    var symbol = $('#instrument').val();
+                    $.getJSON("//api.fxhistoricaldata.com/v1/indicators?t=5min&e=close&s="+symbol+"&jsoncallback=?",
+                        function(data) {
+                            $('#entry').val(data['results'][symbol]['data'][0][1]).change();
+                            $('#currentPriceTime').text(data['results'][symbol]['data'][0][0]);
+                        });
+                    });
+
+                $('#getPreviousHigh').click(function() {
+                    var symbol = $('#instrument').val();
+                    $.getJSON("//api.fxhistoricaldata.com/v1/indicators?t=hour&e=max(high,396)&s="+symbol+"&jsoncallback=?",
+                        function(data) {
+                            $('#exit').val(data['results'][symbol]['data'][0][1]).change();
+                        });
+                    });
+
+                $('#getPreviousLow').click(function() {
+                    var symbol = $('#instrument').val();
+                    $.getJSON("//api.fxhistoricaldata.com/v1/indicators?t=hour&e=min(low,396)&s="+symbol+"&jsoncallback=?",
+                        function(data) {
+                            $('#exit').val(data['results'][symbol]['data'][0][1]).change();
+                        });
+                    });
+
+                $('.recalculate').change(calculatePositionSize);
+                $('#positionSize').change(calculateMaxLoss);
+                $('.persistValue').change(function() {
+                        $.cookie(this.name, this.value, { expires: 30 });
+                    });
+
+                $('.persistValue').each(function(index, obj) {
+                        var cookieValue = $.cookie(obj.name);
+                        $(obj).val(cookieValue);
+                    });
+
+                var $maxLossCookie = $.cookie('maxLoss');
+                if ($maxLossCookie) {
+                    $('#maxLoss').val($maxLossCookie);
+                }
+
+                function getRatioCurrency() {
+                    var symbolCurrency = symbolCurrencyMap[$('#instrument').val()][0];
+                    var accountCurrency = $('#accountCurrency').val();
+                    if (symbolCurrency === accountCurrency) {
+                        return;
+                    }
+
+                    var symbol = accountCurrency + symbolCurrency;
+                    return symbol;
+                }
+
+                function calculateMaxLoss() {
+                    var $positionSize = $('#positionSize').val();
+                    var $entry = $('#entry').val();
+                    var $exit = $('#exit').val();
+
+                    if (!$positionSize || !$entry || !$exit) {
+                        return;
+                    }
+
+                    var $ratioCurrency = getRatioCurrency();
+                    if ($ratioCurrency) {
+                        $.getJSON("//api.fxhistoricaldata.com/v1/lastclose?s="+$ratioCurrency+"&jsoncallback=?",
+                            function(data) {
+                                var $ratio = data[$ratioCurrency][1];
+                                var $maxLoss = parseInt($positionSize * ($entry - $exit) / $ratio, 10);
+                                $('#maxLoss').val($maxLoss);
+                                setTextExplanation($entry, $exit, $positionSize, $maxLoss);
+                            }
+                        );
+                    } else {
+                        var $maxLoss = parseInt($positionSize * ($entry - $exit), 10);
+                        $('#maxLoss').val($maxLoss);
+                        setTextExplanation($entry, $exit, $positionSize, $maxLoss);
+                    }
+                }
+
+                function setTextExplanation($entry, $exit, $positionSize, $maxLoss) {
+                    var $longshort = ($entry > $exit ? 'buy' : 'short');
+                    var $instrument = $('#instrument').val();
+                    var $accountCurrency = $('#accountCurrency').val();
+                    $('#textualExplanation').text('If you ' + $longshort + ' ' + parseInt(Math.abs($positionSize), 10) + ' ' + $instrument + ' at ' + $entry + ', and hit stop loss at ' + $exit + ', your loss will be ' + $maxLoss + ' ' + $accountCurrency);
+                }
+
+                function calculatePositionSize() {
+                    var $maxLoss = $('#maxLoss').val();
+                    var $entry = $('#entry').val();
+                    var $exit = $('#exit').val();
+
+                    if (!$maxLoss || !$entry || !$exit) {
+                        return;
+                    }
+
+                    var $ratioCurrency = getRatioCurrency();
+                    if ($ratioCurrency) {
+                        $.getJSON("//api.fxhistoricaldata.com/v1/lastclose?s="+$ratioCurrency+"&jsoncallback=?",
+                            function(data) {
+                                var $ratio = data[$ratioCurrency][1];
+                                var $positionSize = parseInt($maxLoss * $ratio / ($entry - $exit), 10) / symbolCurrencyMap[ $('#instrument').val() ][2];
+                                $('#positionSize').val($positionSize);
+                                setTextExplanation($entry, $exit, $positionSize, $maxLoss);
+                                $('#sizePerPoint').val($maxLoss / ($entry-$exit) / symbolCurrencyMap[ $('#instrument').val() ][1] / $ratio  );
+                            }
+                        );
+                    } else {
+                        var $positionSize = parseInt($maxLoss / ($entry - $exit), 10);
+                        $('#positionSize').val($positionSize);
+                        setTextExplanation($entry, $exit, $positionSize, $maxLoss);
+                        $('#sizePerPoint').val($maxLoss / ($entry-$exit) / symbolCurrencyMap[ $('#instrument').val() ][1]  );
+                    }
+                }
+
+                $('#getCurrentPrice').click();
+
+            });
+        </script>
+        <style type="text/css">
+
+            html {
+                font: 90%/1.3 arial,sans-serif;
+                padding:1em;
+                background:#fafafa;
+            }
+
+            body {
+                padding: 0;
+                margin: 20px;
+                color: #333;
+                background: #fff;
+                font: 12px arial, verdana, sans-serif;
+            }
+
+            fieldset {
+                margin: 1em 0;
+                border: none;
+                border-top: 1px solid #ccc;
+            }
+
+            legend {
+                margin: 1em 0;
+                padding: 0 .5em;
+                color: #036;
+                background: transparent;
+                font-size: 1.3em;
+                font-weight: bold;
+            }
+            label {
+                float: left;
+                width: 100px;
+                padding: 0 1em;
+                text-align: right;
+            }
+            fieldset div {
+                margin-bottom: .1em;
+                padding: 0;
+                display: block;
+            }
+            fieldset div input, fieldset div select {
+                width: 150px;
+                border-top: 1px solid #555;
+                border-left: 1px solid #555;
+                border-bottom: 1px solid #ccc;
+                border-right: 1px solid #ccc;
+                padding: 1px;
+                color: #333;
+            }
+            fieldset div button {
+                padding: 0px;
+                width: 150px;
+            }
+            button#getPreviousLow, button#getPreviousHigh {
+                width: 74px;
+            }
+
+            input:focus, textarea:focus {
+                background: #efefef;
+                color: #000;
+            }
+        </style>
+    </head>
+    <body>
+        <a href="size.html">Position Size</a>
+        <form>
+            <fieldset><legend>Position Size</legend>
+                <div>
+                    <label for="instrument">Instrument</label>
+                    <select name="instrument" id="instrument" class="persistValue">
+                        <option value="AUDJPY">AUDJPY</option>
+                        <option value="AUDNZD">AUDNZD</option>
+                        <option value="AUDUSD">AUDUSD</option>
+                        <option value="CHFJPY">CHFJPY</option>
+                        <option value="EURCAD">EURCAD</option>
+                        <option value="EURCHF">EURCHF</option>
+                        <option value="EURGBP">EURGBP</option>
+                        <option value="EURJPY">EURJPY</option>
+                        <option value="EURUSD">EURUSD</option>
+                        <option value="GBPCHF">GBPCHF</option>
+                        <option value="GBPJPY">GBPJPY</option>
+                        <option value="GBPNZD">GBPNZD</option>
+                        <option value="GBPUSD">GBPUSD</option>
+                        <option value="NZDJPY">NZDJPY</option>
+                        <option value="NZDUSD">NZDUSD</option>
+                        <option value="USDCAD">USDCAD</option>
+                        <option value="USDCHF">USDCHF</option>
+                        <option value="USDJPY">USDJPY</option>
+                        <option value="XAGUSD">XAGUSD</option>
+                        <option value="XAUUSD">XAUUSD</option>
+                        <option value="Copper">Copper</option>
+                        <option value="AUS200">AUS200</option>
+                        <option value="ESP35">ESP35</option>
+                        <option value="FRA40">FRA40</option>
+                        <option value="GER30">GER30</option>
+                        <option value="HKG33">HKG33</option>
+                        <option value="ITA40">ITA40</option>
+                        <option value="JPN225">JPN225</option>
+                        <option value="NAS100">NAS100</option>
+                        <option value="SPX500">SPX500</option>
+                        <option value="SUI30">SUI30</option>
+                        <option value="UK100">UK100</option>
+                        <option value="US30">US30</option>
+                        <option value="UKOil">UKOil</option>
+                        <option value="USOil">USOil</option>
+                        <option value="XPDUSD">XPDUSD</option>
+                        <option value="XPTUSD">XPTUSD</option>
+                        <option value="Bund">Bund</option>
+                        <option value="NGAS">NGAS</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="entry">Entry</label>
+                    <input type="text" name="entry" id="entry" class="recalculate" />
+                    <button type="button" id="getCurrentPrice">Last Known Price</button>
+                    <span id="currentPriceTime"></span>
+                </div>
+                <div>
+                    <label for="exit">Stop Loss</label>
+                    <input type="text" name="exit" id="exit" class="recalculate" />
+                    <button type="button" id="getPreviousLow">Long</button>
+                    <button type="button" id="getPreviousHigh">Short</button>
+                </div>
+                <div>
+                    <label for="maxLoss">Max Loss</label>
+                    <input type="text" name="maxLoss" id="maxLoss" class="recalculate persistValue" />
+                    <select name="accountCurrency" id="accountCurrency" class="recalculate">
+                        <option value="GBP">GBP</option>
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                        <option value="CHF">CHF</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="positionSize">Position Size</label>
+                    <input type="text" name="positionSize" id="positionSize" />
+                </div>
+                <div>
+                    <label for="sizePerPoint">Size per point</label>
+                    <input type="text" name="sizePerPoint" id="sizePerPoint" />
+                </div>
+            </fieldset>
+        </form>
+        <div id="textualExplanation"></div>
+    </body>
+</html>
