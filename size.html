@@ -112,7 +112,7 @@
 
                     var $ratioCurrency = getRatioCurrency();
                     if ($ratioCurrency) {
-                        $.getJSON("//api.fxhistoricaldata.com/lastclose?s="+$ratioCurrency+"&jsoncallback=?",
+                        $.getJSON("//api.fxhistoricaldata.com/lastclose?instruments="+$ratioCurrency+"&jsoncallback=?",
                             function(data) {
                                 var $ratio = data[$ratioCurrency][1];
                                 var $maxLoss = parseInt($positionSize * ($entry - $exit) / $ratio, 10);
@@ -145,7 +145,7 @@
 
                     var $ratioCurrency = getRatioCurrency();
                     if ($ratioCurrency) {
-                        $.getJSON("//api.fxhistoricaldata.com/lastclose?s="+$ratioCurrency+"&jsoncallback=?",
+                        $.getJSON("//api.fxhistoricaldata.com/lastclose?instruments="+$ratioCurrency+"&jsoncallback=?",
                             function(data) {
                                 var $ratio = data[$ratioCurrency][1];
                                 var $positionSize = parseInt($maxLoss * $ratio / ($entry - $exit), 10) / symbolCurrencyMap[ $('#instrument').val() ][2];
