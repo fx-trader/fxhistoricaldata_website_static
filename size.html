@@ -80,8 +80,23 @@
                     var instrument  = $('#instrument').val();
                     var positionSize= $('#positionSize').val();
                     var rsi         = $('#rsi').val();
-                    var direction   = (this.id === 'sniperLong' ? 'long' : 'short');
+                    var timeframe   = $('#timeframe').val();
 
+                    var direction   = (this.id === 'sniperLong' ? 'long' : 'short');
+                    var expression  = "rsi" + (this.id === 'sniperLong' ? '<' : '>') + rsi;
+
+                    var url = "//api.fxhistoricaldata.com/snipers";
+                    $.post(url,
+                        JSON.stringify({
+                            timeframe:      timeframe,
+                            instrument:     instrument,
+                            expression:     expression,
+                            positionSize:   positionSize,
+
+                        }),
+                        function(data) {
+                            alert(data);
+                        }, 'json');
                     $('#textualExplanation').text('Enter ' + direction + ' ' + positionSize + ' on ' + instrument + ' when rsi crosses under ' + rsi);
                 });
 
@@ -323,7 +338,7 @@
             <fieldset><legend>Enter trade</legend>
                 <div>
                     <label for="rsi">RSI Timeframe</label>
-                    <select name="instrument" id="instrument" class="persistValue">
+                    <select name="timeframe" id="timeframe" class="persistValue">
                         <option default value="15min">15 Minutes</option>
                     </select>
                 </div>
