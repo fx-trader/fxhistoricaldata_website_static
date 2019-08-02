@@ -1,7 +1,7 @@
 <html>
     <head>
-        <script type="text/javascript" src="//code.jquery.com/jquery-2.2.1.min.js"></script>
-        <script type="text/javascript" src="//cdn.jsdelivr.net/jquery.cookie/1.4.1/jquery.cookie.js"></script>
+        <script type="text/javascript" src="//code.jquery.com/jquery-3.4.1.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
         <script type="text/javascript">
         "use strict";
             $(document).ready(function() {
@@ -76,18 +76,27 @@
                         });
                     });
 
+                $('#sniperLong, #sniperShort').click(function() {
+                    var instrument  = $('#instrument').val();
+                    var positionSize= $('#positionSize').val();
+                    var rsi         = $('#rsi').val();
+                    var direction   = (this.id === 'sniperLong' ? 'long' : 'short');
+
+                    $('#textualExplanation').text('Enter ' + direction + ' ' + positionSize + ' on ' + instrument + ' when rsi crosses under ' + rsi);
+                });
+
                 $('.recalculate').change(calculatePositionSize);
                 $('#positionSize').change(calculateMaxLoss);
                 $('.persistValue').change(function() {
-                        $.cookie(this.name, this.value, { expires: 30 });
+                        Cookies.set(this.name, this.value, { expires: 30 });
                     });
 
                 $('.persistValue').each(function(index, obj) {
-                        var cookieValue = $.cookie(obj.name);
+                        var cookieValue = Cookies.get(obj.name);
                         $(obj).val(cookieValue);
                     });
 
-                var $maxLossCookie = $.cookie('maxLoss');
+                var $maxLossCookie = Cookies.get('maxLoss');
                 if ($maxLossCookie) {
                     $('#maxLoss').val($maxLossCookie);
                 }
@@ -222,7 +231,7 @@
                 padding: 0px;
                 width: 150px;
             }
-            button#getPreviousLow, button#getPreviousHigh {
+            button#getPreviousLow, button#getPreviousHigh, button#sniperLong, button#sniperShort {
                 width: 74px;
             }
 
@@ -309,6 +318,20 @@
                 <div>
                     <label for="sizePerPoint">Size per point</label>
                     <input type="text" name="sizePerPoint" id="sizePerPoint" />
+                </div>
+            </fieldset>
+            <fieldset><legend>Enter trade</legend>
+                <div>
+                    <label for="rsi">RSI Timeframe</label>
+                    <select name="instrument" id="instrument" class="persistValue">
+                        <option default value="15min">15 Minutes</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="rsi">RSI</label>
+                    <input type="text" name="rsi" id="rsi" class="persistValue"/>
+                    <button type="button" id="sniperLong">Long</button>
+                    <button type="button" id="sniperShort">Short</button>
                 </div>
             </fieldset>
         </form>
