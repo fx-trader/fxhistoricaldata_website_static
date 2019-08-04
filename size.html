@@ -130,7 +130,7 @@
                     var timeframe   = $('#timeframe').val();
 
                     var direction   = (this.id === 'sniperLong' ? 'long' : 'short');
-                    var expression  = "rsi" + (this.id === 'sniperLong' ? '<' : '>') + rsi;
+                    var expression  = "rsi(close,14)" + (this.id === 'sniperLong' ? '<' : '>') + rsi;
 
                     var url = "/snipers";
                     $.post(url,
