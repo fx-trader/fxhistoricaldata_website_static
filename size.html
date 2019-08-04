@@ -10,18 +10,47 @@
         "use strict";
             $(document).ready(function() {
 
-                $('#snipers-table').DataTable( {
+                var table = $('#snipers-table').DataTable( {
                     'ajax': {
                         'url': '/snipers',
                         'dataSrc': ''
                     },
                     'columns': [
+                        { data: 'id' },
                         { data: 'instrument' },
                         { data: 'timeframe' },
                         { data: 'quantity' },
                         { data: 'expression' }
                     ]
                 });
+
+                $('#snipers-table tbody').on( 'click', 'tr', function () {
+                    if ( $(this).hasClass('selected') ) {
+                        $(this).removeClass('selected');
+                    }
+                    else {
+                        table.$('tr.selected').removeClass('selected');
+                        $(this).addClass('selected');
+                    }
+                } );
+
+                $('#sniper-table-delete').click( function () {
+                    var id = table.row('.selected').data()['id']
+                    var request = $.ajax({
+                        url: '/snipers/' + id,
+                        type: 'DELETE'
+                    });
+
+                    request.done(function( msg ) {
+                        $('#textualExplanation').text('Successfully deleted sniper');
+                    });
+
+                    request.fail(function( jqXHR, textStatus ) {
+                        $('#textualExplanation').text('Request Failed: ' + textStatus);
+                    });
+
+                    table.row('.selected').remove().draw( false );
+                } );
 
                 var symbolCurrencyMap = {
                     AUD_JPY: ["JPY",100,1],
@@ -103,7 +132,7 @@
                     var direction   = (this.id === 'sniperLong' ? 'long' : 'short');
                     var expression  = "rsi" + (this.id === 'sniperLong' ? '<' : '>') + rsi;
 
-                    var url = "//api.fxhistoricaldata.com/snipers";
+                    var url = "/snipers";
                     $.post(url,
                         JSON.stringify({
                             timeframe:      timeframe,
@@ -369,10 +398,12 @@
             </fieldset>
         </form>
         <div id="textualExplanation"></div>
+        <button id="sniper-table-delete">Delete selected row</button>
         <div id="snipers" style="width: 90%">
             <table id="snipers-table" class="display">
                 <thead>
                     <tr>
+                        <th>ID</th>
                         <th>Instrument</th>
                         <th>TimeFrame</th>
                         <th>Quantity</th>
@@ -381,6 +412,7 @@
                 </thead>
                 <tbody>
                     <tr>
+                        <td></td>
                         <td></td>
                         <td></td>
                         <td></td>
