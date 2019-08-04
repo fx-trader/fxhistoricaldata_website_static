@@ -2,9 +2,27 @@
     <head>
         <script type="text/javascript" src="//code.jquery.com/jquery-3.4.1.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+
+        <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
+        <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
+
         <script type="text/javascript">
         "use strict";
             $(document).ready(function() {
+
+                $('#snipers-table').DataTable( {
+                    'ajax': {
+                        'url': '/snipers',
+                        'dataSrc': ''
+                    },
+                    'columns': [
+                        { data: 'instrument' },
+                        { data: 'timeframe' },
+                        { data: 'quantity' },
+                        { data: 'expression' }
+                    ]
+                });
+
                 var symbolCurrencyMap = {
                     AUD_JPY: ["JPY",100,1],
                     AUD_NZD: ["NZD",10000,1],
@@ -91,7 +109,7 @@
                             timeframe:      timeframe,
                             instrument:     instrument,
                             expression:     expression,
-                            positionSize:   positionSize,
+                            quantity:   positionSize,
 
                         }),
                         function(data) {
@@ -351,5 +369,25 @@
             </fieldset>
         </form>
         <div id="textualExplanation"></div>
+        <div id="snipers" style="width: 90%">
+            <table id="snipers-table" class="display">
+                <thead>
+                    <tr>
+                        <th>Instrument</th>
+                        <th>TimeFrame</th>
+                        <th>Quantity</th>
+                        <th>Expression</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </body>
 </html>
