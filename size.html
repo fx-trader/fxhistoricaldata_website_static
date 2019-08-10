@@ -10,7 +10,7 @@
         "use strict";
             $(document).ready(function() {
 
-                var table = $('#snipers-table').DataTable( {
+                var snipers_table = $('#snipers-table').DataTable( {
                     'ajax': {
                         'url': '/snipers',
                         'dataSrc': ''
@@ -29,13 +29,13 @@
                         $(this).removeClass('selected');
                     }
                     else {
-                        table.$('tr.selected').removeClass('selected');
+                        snipers_table.$('tr.selected').removeClass('selected');
                         $(this).addClass('selected');
                     }
                 } );
 
                 $('#sniper-table-delete').click( function () {
-                    var id = table.row('.selected').data()['id']
+                    var id = snipers_table.row('.selected').data()['id']
                     var request = $.ajax({
                         url: '/snipers/' + id,
                         type: 'DELETE'
@@ -49,8 +49,20 @@
                         $('#textualExplanation').text('Request Failed: ' + textStatus);
                     });
 
-                    table.row('.selected').remove().draw( false );
+                    snipers_table.row('.selected').remove().draw( false );
                 } );
+
+
+                var screen_table = $('#screen-table').DataTable( {
+                    'ajax': {
+                        'url': '/screener?expression=rsi(close,14),rsi(close,14)-previous(rsi(close,14),1)&timeframe=week',
+                        'dataSrc': 'results'
+                    },
+                });
+
+
+
+
 
                 var symbolCurrencyMap = {
                     AUD_JPY: ["JPY",100,1],
@@ -123,14 +135,17 @@
                         });
                     });
 
-                $('#sniperLong, #sniperShort').click(function() {
+                $('#sniperCreate').click(function() {
                     var instrument  = $('#instrument').val();
                     var positionSize= $('#positionSize').val();
                     var rsi         = $('#rsi').val();
                     var timeframe   = $('#timeframe').val();
 
-                    var direction   = (this.id === 'sniperLong' ? 'long' : 'short');
-                    var expression  = "rsi(close,14)" + (this.id === 'sniperLong' ? '<' : '>') + rsi;
+                    var expression  = "rsi(close,14)" + (positionSize > 0 ? '<' : '>') + rsi;
+                    if ((positionSize > 0 && rsi > 60) || (positionSize < 0 && rsi < 40)) {
+                        $('#textualExplanation').text('PositionSize and rsi validation mismatch');
+                        return;
+                    }
 
                     var url = "/snipers";
                     $.post(url,
@@ -144,7 +159,7 @@
                         function(data) {
                             alert(data);
                         }, 'json');
-                    $('#textualExplanation').text('Enter ' + direction + ' ' + positionSize + ' on ' + instrument + ' when rsi crosses under ' + rsi);
+                    $('#textualExplanation').text('Enter ' + positionSize + ' on ' + instrument + ' when rsi crosses ' + rsi);
                 });
 
                 $('.recalculate').change(calculatePositionSize);
@@ -293,7 +308,7 @@
                 padding: 0px;
                 width: 150px;
             }
-            button#getPreviousLow, button#getPreviousHigh, button#sniperLong, button#sniperShort {
+            button#getPreviousLow, button#getPreviousHigh {
                 width: 74px;
             }
 
@@ -304,7 +319,6 @@
         </style>
     </head>
     <body>
-        <a href="size.html">Position Size</a>
         <form>
             <fieldset><legend>Position Size</legend>
                 <div>
@@ -392,8 +406,7 @@
                 <div>
                     <label for="rsi">RSI</label>
                     <input type="text" name="rsi" id="rsi" class="persistValue"/>
-                    <button type="button" id="sniperLong">Long</button>
-                    <button type="button" id="sniperShort">Short</button>
+                    <button type="button" id="sniperCreate">Create Sniper</button>
                 </div>
             </fieldset>
         </form>
@@ -413,6 +426,32 @@
                 <tbody>
                     <tr>
                         <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <form>
+            <fieldset><legend>Screener</legend>
+            </fieldset>
+        </form>
+
+        <div id="screener" style="width: 90%">
+            <table id="screen-table" class="display">
+                <thead>
+                    <tr>
+                        <th>Instrument</th>
+                        <th>Datetime</th>
+                        <th>Weekly RSI</th>
+                        <th>Weekly RSI Delta</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
                         <td></td>
                         <td></td>
                         <td></td>
