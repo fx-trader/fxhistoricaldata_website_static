@@ -62,7 +62,7 @@
 
                 var monthly_range_table = $('#monthly-range-table').DataTable( {
                     'ajax': {
-                        'url': '/screener?expression=100*previous((high-low)/close,1),100*(high-low)/close&timeframe=week',
+                        'url': '/screener?expression=100*previous((high-low)/close,1),100*(high-low)/close&timeframe=month',
                         'dataSrc': 'results'
                     },
                 });
