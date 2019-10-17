@@ -16,11 +16,11 @@
                         'dataSrc': ''
                     },
                     'columns': [
-                        { data: 'id' },
-                        { data: 'instrument' },
-                        { data: 'timeframe' },
-                        { data: 'quantity' },
-                        { data: 'expression' }
+                        { data: 'id', className: 'dt-body-right' },
+                        { data: 'instrument', className: 'dt-body-center' },
+                        { data: 'timeframe', className: 'dt-body-right' },
+                        { data: 'quantity', className: 'dt-body-right' },
+                        { data: 'expression', className: 'dt-body-right' }
                     ]
                 });
 
@@ -56,6 +56,13 @@
                 var screen_table = $('#screen-table').DataTable( {
                     'ajax': {
                         'url': '/screener?expression=rsi(close,14),rsi(close,14)-previous(rsi(close,14),1)&timeframe=week',
+                        'dataSrc': 'results'
+                    },
+                });
+
+                var monthly_range_table = $('#monthly-range-table').DataTable( {
+                    'ajax': {
+                        'url': '/screener?expression=100*previous((high-low)/close,1),100*(high-low)/close&timeframe=week',
                         'dataSrc': 'results'
                     },
                 });
@@ -447,7 +454,7 @@
         </div>
 
         <form>
-            <fieldset><legend>Screener</legend>
+            <fieldset><legend>Screeners</legend>
             </fieldset>
         </form>
 
@@ -464,6 +471,23 @@
                 <tbody>
                     <tr>
                         <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+            <table id="monthly-range-table" class="display">
+                <thead>
+                    <tr>
+                        <th>Instrument</th>
+                        <th>Datetime</th>
+                        <th>Previous Month Range</th>
+                        <th>Current  Month Range</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
                         <td></td>
                         <td></td>
                         <td></td>
