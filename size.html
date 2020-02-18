@@ -131,7 +131,7 @@
 
                 $('#getPreviousHigh').click(function() {
                     var symbol = $('#instrument').val();
-                    $.getJSON("//api.fxhistoricaldata.com/indicators?timeframe=hour&expression=max(high,396)&instruments="+symbol+"&jsoncallback=?",
+                    $.getJSON("//api.fxhistoricaldata.com/indicators?timeframe=hour&expression=max(high,396)&item_count=1&instruments="+symbol+"&jsoncallback=?",
                         function(data) {
                             $('#exit').val(data['results'][symbol]['data'][0][1]).change();
                         });
@@ -139,7 +139,7 @@
 
                 $('#getPreviousLow').click(function() {
                     var symbol = $('#instrument').val();
-                    $.getJSON("//api.fxhistoricaldata.com/indicators?timeframe=hour&expression=min(low,396)&instruments="+symbol+"&jsoncallback=?",
+                    $.getJSON("//api.fxhistoricaldata.com/indicators?timeframe=hour&expression=min(low,396)&item_count=1&instruments="+symbol+"&jsoncallback=?",
                         function(data) {
                             $('#exit').val(data['results'][symbol]['data'][0][1]).change();
                         });
