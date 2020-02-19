@@ -146,10 +146,10 @@
                     });
 
                 $('#sniperCreate').click(function() {
-                    var instrument  = 'minute';
+                    var instrument  = $('#instrument').val();
                     var positionSize= $('#positionSize').val();
                     var rsi         = $('#rsi').val();
-                    var timeframe   = $('#timeframe').val();
+                    var timeframe   = 'minute';
 
                     var expression  = $('#txt_expression').val();
                     if (expression === '') {
