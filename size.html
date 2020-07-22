@@ -60,15 +60,6 @@
                     },
                 });
 
-                var monthly_range_table = $('#monthly-range-table').DataTable( {
-                    'ajax': {
-                        'url': '/screener?expression=100*previous((high-low)/close,1),100*(high-low)/close&timeframe=month',
-                        'dataSrc': 'results'
-                    },
-                });
-
-
-
 
 
                 var symbolCurrencyMap = {
@@ -500,23 +491,6 @@
                 <tbody>
                     <tr>
                         <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                </tbody>
-            </table>
-            <table id="monthly-range-table" class="display">
-                <thead>
-                    <tr>
-                        <th>Instrument</th>
-                        <th>Datetime</th>
-                        <th>Previous Month Range</th>
-                        <th>Current  Month Range</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
                         <td></td>
                         <td></td>
                         <td></td>
