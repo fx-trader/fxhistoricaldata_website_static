@@ -12,7 +12,7 @@
 
                 var snipers_table = $('#snipers-table').DataTable( {
                     'ajax': {
-                        'url': '/snipers',
+                        'url': 'http://snipers.fxhistoricaldata.com/snipers/',
                         'dataSrc': ''
                     },
                     'columns': [
@@ -37,7 +37,7 @@
                 $('#sniper-table-delete').click( function () {
                     var id = snipers_table.row('.selected').data()['id']
                     var request = $.ajax({
-                        url: '/snipers/' + id,
+                        url: 'http://snipers.fxhistoricaldata.com/snipers/' + id,
                         type: 'DELETE'
                     });
 
@@ -148,7 +148,7 @@
                         return;
                     }
 
-                    var url = "/snipers";
+                    var url = "http://snipers.fxhistoricaldata.com/snipers/";
                     $.post(url,
                         JSON.stringify({
                             timeframe:      timeframe,
