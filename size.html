@@ -55,7 +55,7 @@
 
                 var screen_table = $('#screen-table').DataTable( {
                     'ajax': {
-                        'url': '/screener?expression=rsi(close,14),rsi(close,14)-previous(rsi(close,14),1)&timeframe=week',
+                        'url': 'http://api.fxhistoricaldata.com/screener?expression=rsi(close,14),rsi(close,14)-previous(rsi(close,14),1)&timeframe=week',
                         'dataSrc': 'results'
                     },
                 });
