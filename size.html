@@ -23,7 +23,16 @@
                         { data: 'quantity', className: 'dt-body-right' },
                         { data: 'expression', className: 'dt-body-right' },
                         { data: 'discarded_at', className: 'dt-body-center' }
-                    ]
+                    ],
+                    'columnDefs': [{'targets': [0,2], 'visible': false},{
+                        'targets': [1],
+                        'render': function (data, type, row, meta) {
+                            if (type !== 'display')
+                                return data;
+                            var instrument = data.replace(/_/, '');
+                            return "<a href='https://uk.tradingview.com/symbols/" + instrument + "/'>" + data + "</a>"
+                        }
+                    }]
                 });
 
                 $('#snipers-table tbody').on( 'click', 'tr', function () {
@@ -54,12 +63,20 @@
                     snipers_table.row('.selected').remove().draw( false );
                 } );
 
-
                 var screen_table = $('#screen-table').DataTable( {
                     'ajax': {
                         'url': 'http://api.fxhistoricaldata.com/screener?expression=rsi(close,14),rsi(close,14)-previous(rsi(close,14),1)&timeframe=week',
                         'dataSrc': 'results'
                     },
+                    'columnDefs': [{
+                        'targets': 0,
+                        'render': function (data, type, row, meta) {
+                            if (type !== 'display')
+                                return data;
+                            var instrument = data.replace(/_/, '');
+                            return "<a href='https://uk.tradingview.com/symbols/" + instrument + "/'>" + data + "</a>"
+                        }
+                    }]
                 });
 
 
@@ -276,6 +293,7 @@
                         setTextExplanation($entry, $exit, $positionSize, $maxLoss);
                         $('#sizePerPoint').val($maxLoss / ($entry-$exit) / symbolCurrencyMap[ $('#instrument').val() ][1]  );
                     }
+                    setExpression();
                 }
 
                 $('#getCurrentPrice').click();
