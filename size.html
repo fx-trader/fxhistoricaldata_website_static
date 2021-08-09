@@ -1,18 +1,19 @@
 <html>
     <head>
-        <script type="text/javascript" src="//code.jquery.com/jquery-3.4.1.min.js"></script>
-        <script src="//cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+        <script type="text/javascript" src="//code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="//cdn.jsdelivr.net/npm/js-cookie@3/dist/js.cookie.min.js"></script>
 
-        <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
-        <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
+        <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.25/css/jquery.dataTables.css">
+        <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.25/js/jquery.dataTables.js"></script>
 
         <script type="text/javascript">
         "use strict";
             $(document).ready(function() {
+                var domain = document.domain;
 
                 var snipers_table = $('#snipers-table').DataTable( {
                     'ajax': {
-                        'url': 'http://snipers.fxhistoricaldata.com/snipers/',
+                        'url': 'http://snipers.' + domain + '/snipers/',
                         'dataSrc': ''
                     },
                     'columns': [
@@ -38,7 +39,7 @@
                 $('#sniper-table-delete').click( function () {
                     var id = snipers_table.row('.selected').data()['id']
                     var request = $.ajax({
-                        url: 'http://snipers.fxhistoricaldata.com/snipers/' + id,
+                        url: 'http://snipers.' + domain + '/snipers/' + id,
                         type: 'DELETE'
                     });
 
@@ -151,7 +152,7 @@
                         return;
                     }
 
-                    var url = "http://snipers.fxhistoricaldata.com/snipers/";
+                    var url = "http://snipers." + domain + "/snipers/";
                     $.post(url,
                         JSON.stringify({
                             timeframe:      timeframe,
