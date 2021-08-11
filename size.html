@@ -133,12 +133,16 @@
                         });
                 $('#getCurrentPrice').click(function() {
                     var symbol = $('#instrument').val();
-                    $.getJSON("//api.fxhistoricaldata.com/indicators?timeframe=5minute&expression=close&instruments="+symbol+"&jsoncallback=?",
+                    $.getJSON("//api.fxhistoricaldata.com/indicators?timeframe=minute&expression=close&instruments="+symbol+"&jsoncallback=?",
                         function(data) {
                             $('#entry').val(data['results'][symbol]['data'][0][1]).change();
-                            $('#currentPriceTime').text(data['results'][symbol]['data'][0][0]);
+                            $('#currentPriceTime').text(data['results'][symbol]['data'][0][0] + ' UTC');
                         });
                     });
+
+                $('#instrument').change(function(e) {
+                    $('#getCurrentPrice').click();
+                });
 
                 $('#getPreviousHigh').click(function() {
                     var symbol = $('#instrument').val();
