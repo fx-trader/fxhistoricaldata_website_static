@@ -133,7 +133,7 @@
                         });
                 $('#getCurrentPrice').click(function() {
                     var symbol = $('#instrument').val();
-                    $.getJSON("//api.fxhistoricaldata.com/indicators?timeframe=minute&expression=close&instruments="+symbol+"&jsoncallback=?",
+                    $.getJSON("//api.fxhistoricaldata.com/indicators?timeframe=minute&expression=close&item_count=1&instruments="+symbol+"&jsoncallback=?",
                         function(data) {
                             $('#entry').val(data['results'][symbol]['data'][0][1]).change();
                             $('#currentPriceTime').text(data['results'][symbol]['data'][0][0] + ' UTC');
