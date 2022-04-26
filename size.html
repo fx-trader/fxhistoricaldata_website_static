@@ -1,317 +1,331 @@
+<!DOCTYPE html>
 <html>
     <head>
         <script type="text/javascript" src="//code.jquery.com/jquery-3.6.0.min.js"></script>
-        <script src="//cdn.jsdelivr.net/npm/js-cookie@3/dist/js.cookie.min.js"></script>
+        <script src="//cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"></script>
 
-        <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.25/css/jquery.dataTables.css">
-        <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.25/js/jquery.dataTables.js"></script>
+        <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+        <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 
         <script type="text/javascript">
-        "use strict";
-            $(document).ready(function() {
-                var domain = document.domain;
+            "use strict";
+$(document).ready(function() {
+    var domain = document.domain;
 
-                var snipers_table = $('#snipers-table').DataTable( {
-                    'ajax': {
-                        'url': 'http://snipers.' + domain + '/snipers/',
-                        'dataSrc': ''
-                    },
-                    'columns': [
-                        { data: 'id', className: 'dt-body-right' },
-                        { data: 'instrument', className: 'dt-body-center' },
-                        { data: 'timeframe', className: 'dt-body-right' },
-                        { data: 'quantity', className: 'dt-body-right' },
-                        { data: 'expression', className: 'dt-body-right' },
-                        { data: 'discarded_at', className: 'dt-body-center' }
-                    ],
-                    'columnDefs': [{'targets': [0,2], 'visible': false},{
-                        'targets': [1],
-                        'render': function (data, type, row, meta) {
-                            if (type !== 'display')
-                                return data;
-                            var instrument = data.replace(/_/, '');
-                            return "<a href='https://uk.tradingview.com/symbols/" + instrument + "/'>" + data + "</a>"
-                        }
-                    }]
-                });
+    var snipers_table = $('#snipers-table').DataTable( {
+        'ajax': {
+            'url': 'http://snipers.' + domain + '/snipers/',
+            'dataSrc': ''
+        },
+        'columns': [
+            { data: 'id', className: 'dt-body-right' },
+            { data: 'instrument', className: 'dt-body-center' },
+            { data: 'timeframe', className: 'dt-body-right' },
+            { data: 'quantity', className: 'dt-body-right' },
+            { data: 'expression', className: 'dt-body-right' },
+            { data: 'discarded_at', className: 'dt-body-center' }
+        ],
+        'columnDefs': [{'targets': [0,2], 'visible': false},{
+            'targets': [1],
+            'render': function (data, type, row, meta) {
+                if (type !== 'display')
+                    return data;
+                var instrument = data.replace(/_/, '');
+                return "<a href='instrument.html?instrument=" + data + "'>" + data + "</a>"
 
-                $('#snipers-table tbody').on( 'click', 'tr', function () {
-                    if ( $(this).hasClass('selected') ) {
-                        $(this).removeClass('selected');
-                    }
-                    else {
-                        snipers_table.$('tr.selected').removeClass('selected');
-                        $(this).addClass('selected');
-                    }
-                } );
+            }
+        }]
+    });
 
-                $('#sniper-table-delete').click( function () {
-                    var id = snipers_table.row('.selected').data()['id']
-                    var request = $.ajax({
-                        url: 'http://snipers.' + domain + '/snipers/' + id,
-                        type: 'DELETE'
-                    });
+    $('#snipers-table tbody').on( 'click', 'tr', function () {
+        if ( $(this).hasClass('selected') ) {
+            $(this).removeClass('selected');
+        }
+        else {
+            snipers_table.$('tr.selected').removeClass('selected');
+            $(this).addClass('selected');
+        }
+    } );
 
-                    request.done(function( msg ) {
-                        $('#snipers-table').DataTable().ajax.reload();
-                    });
+    $('#sniper-table-delete').click( function () {
+        var id = snipers_table.row('.selected').data()['id']
+        var request = $.ajax({
+            url: 'http://snipers.' + domain + '/snipers/' + id,
+            type: 'DELETE'
+        });
 
-                    request.fail(function( jqXHR, textStatus ) {
-                        $('#textualExplanation').text('Request Failed: ' + textStatus);
-                    });
+        request.done(function( msg ) {
+            $('#snipers-table').DataTable().ajax.reload();
+        });
 
-                    snipers_table.row('.selected').remove().draw( false );
-                } );
+        request.fail(function( jqXHR, textStatus ) {
+            $('#textualExplanation').text('Request Failed: ' + textStatus);
+        });
 
-                var screen_table = $('#screen-table').DataTable( {
-                    'ajax': {
-                        'url': 'http://api.fxhistoricaldata.com/screener?expression=rsi(close,14),rsi(close,14)-previous(rsi(close,14),1)&timeframe=week',
-                        'dataSrc': 'results'
-                    },
-                    'columnDefs': [{
-                        'targets': 0,
-                        'render': function (data, type, row, meta) {
-                            if (type !== 'display')
-                                return data;
-                            var instrument = data.replace(/_/, '');
-                            return "<a href='https://uk.tradingview.com/symbols/" + instrument + "/'>" + data + "</a>"
-                        }
-                    }]
-                });
+        snipers_table.row('.selected').remove().draw( false );
+    } );
+
+    var screen_table_rsi = $('#screen-table-rsi').DataTable( {
+        'ajax': {
+            'url': 'http://api.fxhistoricaldata.com/screener?expression=rsi(close,14),rsi(close,14)-previous(rsi(close,14),1)&timeframe=week',
+            'dataSrc': 'results'
+        },
+        'columnDefs': [{
+            'targets': 0,
+            'render': function (data, type, row, meta) {
+                if (type !== 'display')
+                    return data;
+                return "<a href='instrument.html?instrument=" + data + "'>" + data + "</a>"
+            }
+        }]
+    });
+
+    var screen_table_rsi = $('#screen-percent-ema').DataTable( {
+        'ajax': {
+            'url': 'http://api.fxhistoricaldata.com/screener?expression=abs(close-ema(close,200))/ema(close,200),close,ema(close,200)',
+            'dataSrc': 'results'
+        },
+        'columnDefs': [{
+            'targets': 0,
+            'render': function (data, type, row, meta) {
+                if (type !== 'display')
+                    return data;
+                return "<a href='instrument.html?instrument=" + data + "'>" + data + "</a>"
+            }
+        }]
+    });
 
 
 
-                var symbolCurrencyMap = {
-                    AUD_JPY: ["JPY",100,1],
-                    AUD_NZD: ["NZD",10000,1],
-                    AUD_USD: ["USD",10000,1],
-                    CAD_JPY: ["JPY",100,1],
-                    CHF_JPY: ["JPY",100,1],
-                    EUR_CAD: ["CAD",10000,1],
-                    EUR_CHF: ["CHF",10000,1],
-                    EUR_GBP: ["GBP",10000,1],
-                    EUR_JPY: ["JPY",100,1],
-                    EUR_PLN: ["PLN",10000,1],
-                    EUR_NZD: ["NZD",10000,1],
-                    EUR_USD: ["USD",10000,1],
-                    GBP_CHF: ["CHF",10000,1],
-                    GBP_JPY: ["JPY",100,1],
-                    GBP_NZD: ["NZD",10000,1],
-                    GBP_USD: ["USD",10000,1],
-                    NZD_JPY: ["JPY",100,1],
-                    NZD_USD: ["USD",10000,1],
-                    USD_CAD: ["CAD",10000,1],
-                    USD_CHF: ["CHF",10000,1],
-                    USD_JPY: ["JPY",100,1],
-                    XAG_EUR: ["EUR",100,1],
-                    XAG_USD: ["USD",100,1],
-                    XAU_EUR: ["EUR",10,1],
-                    XAU_USD: ["USD",10,1],
-                    XAU_XAG: ["XAG",10,1],
-                    XCU_USD: ["USD",2000,1],
-                    XPD_USD: ["USD",10,1],
-                    XPT_USD: ["USD",10,1],
-                    BCO_USD: ["USD",100,1],
-                    WTICO_USD: ["USD",100,1],
-                    AU200_AUD: ["AUD",1,1],
-                    ES35_EUR: ["EUR",1,1],
-                    FR40_EUR: ["EUR",1,1],
-                    DE30_EUR: ["EUR",1,1],
-                    HK33_HKD: ["HKD",1,1],
-                    IT40_EUR: ["EUR",1,1],
-                    JP225_JPY: ["JPY",1,1],
-                    NAS100_USD: ["USD",1,1],
-                    SPX500_USD: ["USD",1,1],
-                    UK100_GBP: ["GBP",1,1],
-                    US30_USD: ["USD",1,1],
-                    DE10YB_EUR: ["EUR",100,10],
-                    NATGAS_USD: ["USD",1000,1],
-                };
+    var symbolCurrencyMap = {
+        AUD_JPY: ["JPY",100,1],
+        AUD_NZD: ["NZD",10000,1],
+        AUD_USD: ["USD",10000,1],
+        CAD_JPY: ["JPY",100,1],
+        CHF_JPY: ["JPY",100,1],
+        EUR_CAD: ["CAD",10000,1],
+        EUR_CHF: ["CHF",10000,1],
+        EUR_GBP: ["GBP",10000,1],
+        EUR_JPY: ["JPY",100,1],
+        EUR_PLN: ["PLN",10000,1],
+        EUR_NZD: ["NZD",10000,1],
+        EUR_USD: ["USD",10000,1],
+        GBP_CHF: ["CHF",10000,1],
+        GBP_JPY: ["JPY",100,1],
+        GBP_NZD: ["NZD",10000,1],
+        GBP_USD: ["USD",10000,1],
+        NZD_JPY: ["JPY",100,1],
+        NZD_USD: ["USD",10000,1],
+        USD_CAD: ["CAD",10000,1],
+        USD_CHF: ["CHF",10000,1],
+        USD_JPY: ["JPY",100,1],
+        XAG_EUR: ["EUR",100,1],
+        XAG_USD: ["USD",100,1],
+        XAU_EUR: ["EUR",10,1],
+        XAU_USD: ["USD",10,1],
+        XAU_XAG: ["XAG",10,1],
+        XCU_USD: ["USD",2000,1],
+        XPD_USD: ["USD",10,1],
+        XPT_USD: ["USD",10,1],
+        BCO_USD: ["USD",100,1],
+        WTICO_USD: ["USD",100,1],
+        AU200_AUD: ["AUD",1,1],
+        ES35_EUR: ["EUR",1,1],
+        FR40_EUR: ["EUR",1,1],
+        DE30_EUR: ["EUR",1,1],
+        HK33_HKD: ["HKD",1,1],
+        IT40_EUR: ["EUR",1,1],
+        JP225_JPY: ["JPY",1,1],
+        NAS100_USD: ["USD",1,1],
+        SPX500_USD: ["USD",1,1],
+        UK100_GBP: ["GBP",1,1],
+        US30_USD: ["USD",1,1],
+        DE10YB_EUR: ["EUR",100,10],
+        NATGAS_USD: ["USD",1000,1],
+    };
 
-                $('#entry').keyup(function() {
-                        $('#currentPriceTime').text('');
-                        });
-                $('#getCurrentPrice').click(function() {
-                    var symbol = $('#instrument').val();
-                    $.getJSON("//api.fxhistoricaldata.com/indicators?timeframe=minute&expression=close&item_count=1&instruments="+symbol+"&jsoncallback=?",
-                        function(data) {
-                            $('#entry').val(data['results'][symbol]['data'][0][1]).change();
-                            $('#currentPriceTime').text(data['results'][symbol]['data'][0][0] + ' UTC');
-                        });
-                    });
-
-                $('#instrument').change(function(e) {
-                    $('#getCurrentPrice').click();
-                });
-
-                $('#getPreviousHigh').click(function() {
-                    var symbol = $('#instrument').val();
-                    $.getJSON("//api.fxhistoricaldata.com/indicators?timeframe=hour&expression=max(high,396)&item_count=1&instruments="+symbol+"&jsoncallback=?",
-                        function(data) {
-                            $('#exit').val(data['results'][symbol]['data'][0][1]).change();
-                        });
-                    });
-
-                $('#getPreviousLow').click(function() {
-                    var symbol = $('#instrument').val();
-                    $.getJSON("//api.fxhistoricaldata.com/indicators?timeframe=hour&expression=min(low,396)&item_count=1&instruments="+symbol+"&jsoncallback=?",
-                        function(data) {
-                            $('#exit').val(data['results'][symbol]['data'][0][1]).change();
-                        });
-                    });
-
-                $('#sniperCreate').click(function() {
-                    var instrument  = $('#instrument').val();
-                    var positionSize= $('#positionSize').val();
-                    var rsi         = $('#rsi').val();
-                    var expiresIn   = parseInt($('#expiresIn').val(), 10);
-                    var timeframe   = 'minute';
-
-                    var expression  = $('#txt_expression').val();
-                    if (expression === '') {
-                        $('#textualExplanation').text('PositionSize and rsi validation mismatch');
-                        return;
-                    }
-
-                    var url = "http://snipers." + domain + "/snipers/";
-                    $.post(url,
-                        JSON.stringify({
-                            timeframe:      timeframe,
-                            instrument:     instrument,
-                            expression:     expression,
-                            quantity:       positionSize,
-                            expires_in:     ( isNaN(expiresIn) ? null : expiresIn )
-                        }),
-                        function(data) {
-                            alert(data);
-                        }, 'json');
-                    $('#textualExplanation').text('Enter ' + positionSize + ' on ' + instrument + ' when rsi crosses ' + rsi);
-                    $('#snipers-table').DataTable().ajax.reload();
-                });
-
-		function setExpression() {
-                    var timeframe   = $('#timeframe').val();
-                    var positionSize= $('#positionSize').val();
-                    var rsi         = $('#rsi').val();
-
-		    $('#txt_expression').val('');
-
-                    if ((positionSize > 0 && rsi > 60) || (positionSize < 0 && rsi < 40)) {
-                        $('#textualExplanation').text('PositionSize and rsi validation mismatch');
-                        return;
-                    }
-
-                    var expression  = "rsi(close,14)" + (positionSize > 0 ? ' < ' : ' > ') + rsi + " AND " + timeframe + "(rsi(close,14))" + (positionSize > 0 ? ' < ' : ' > ') + rsi;
-		    $('#txt_expression').val(expression);
-		}
-
-		$('#timeframe').change(function() {
-			setExpression();
-		});
-		$('#rsi').change(function() {
-			setExpression();
-		});
-
-                $('.recalculate').change(calculatePositionSize);
-                $('#positionSize').change(calculateMaxLoss);
-                $('.persistValue').change(function() {
-                        Cookies.set(this.name, this.value, { expires: 30 });
-                    });
-
-                $('.persistValue').each(function(index, obj) {
-                        var cookieValue = Cookies.get(obj.name);
-                        $(obj).val(cookieValue);
-                    });
-
-                var $maxLossCookie = Cookies.get('maxLoss');
-                if ($maxLossCookie) {
-                    $('#maxLoss').val($maxLossCookie);
-                }
-
-                function getRatioCurrency() {
-                    var symbolCurrency = symbolCurrencyMap[$('#instrument').val()][0];
-                    var accountCurrency = $('#accountCurrency').val();
-                    if (symbolCurrency === accountCurrency) {
-                        return;
-                    }
-
-                    var symbol = accountCurrency + '_' + symbolCurrency;
-                    return symbol;
-                }
-
-                function calculateMaxLoss() {
-                    var $positionSize = $('#positionSize').val();
-                    var $entry = $('#entry').val();
-                    var $exit = $('#exit').val();
-
-                    if (!$positionSize || !$entry || !$exit) {
-                        return;
-                    }
-
-                    var $ratioCurrency = getRatioCurrency();
-                    if ($ratioCurrency) {
-                        $.getJSON("//api.fxhistoricaldata.com/lastclose?instruments="+$ratioCurrency+"&jsoncallback=?",
-                            function(data) {
-                                var $ratio = data[$ratioCurrency][1];
-                                var $maxLoss = parseInt($positionSize * ($entry - $exit) / $ratio, 10);
-                                $('#maxLoss').val($maxLoss);
-                                setTextExplanation($entry, $exit, $positionSize, $maxLoss);
-                            }
-                        );
-                    } else {
-                        var $maxLoss = parseInt($positionSize * ($entry - $exit), 10);
-                        $('#maxLoss').val($maxLoss);
-                        setTextExplanation($entry, $exit, $positionSize, $maxLoss);
-                    }
-                }
-
-                function setTextExplanation($entry, $exit, $positionSize, $maxLoss) {
-                    var $longshort = ($entry > $exit ? 'buy' : 'short');
-                    var $instrument = $('#instrument').val();
-                    var $accountCurrency = $('#accountCurrency').val();
-                    $('#textualExplanation').text('If you ' + $longshort + ' ' + parseInt(Math.abs($positionSize), 10) + ' ' + $instrument + ' at ' + $entry + ', and hit stop loss at ' + $exit + ', your loss will be ' + $maxLoss + ' ' + $accountCurrency);
-                }
-
-                function calculatePositionSize() {
-                    var $maxLoss = $('#maxLoss').val();
-                    var $entry = $('#entry').val();
-                    var $exit = $('#exit').val();
-
-                    if (!$maxLoss || !$entry || !$exit) {
-                        return;
-                    }
-
-                    var $ratioCurrency = getRatioCurrency();
-                    if ($ratioCurrency) {
-                        $.getJSON("//api.fxhistoricaldata.com/lastclose?instruments="+$ratioCurrency+"&jsoncallback=?",
-                            function(data) {
-                                var $ratio = data[$ratioCurrency][1];
-                                var $positionSize = parseInt($maxLoss * $ratio / ($entry - $exit), 10) / symbolCurrencyMap[ $('#instrument').val() ][2];
-                                $('#positionSize').val($positionSize);
-                                setTextExplanation($entry, $exit, $positionSize, $maxLoss);
-                                $('#sizePerPoint').val($maxLoss / ($entry-$exit) / symbolCurrencyMap[ $('#instrument').val() ][1] / $ratio  );
-                            }
-                        );
-                    } else {
-                        var $positionSize = parseInt($maxLoss / ($entry - $exit), 10);
-                        $('#positionSize').val($positionSize);
-                        setTextExplanation($entry, $exit, $positionSize, $maxLoss);
-                        $('#sizePerPoint').val($maxLoss / ($entry-$exit) / symbolCurrencyMap[ $('#instrument').val() ][1]  );
-                    }
-                    setExpression();
-                }
-
-                $('#getCurrentPrice').click();
-
+    $('#entry').keyup(function() {
+        $('#currentPriceTime').text('');
+    });
+    $('#getCurrentPrice').click(function() {
+        var symbol = $('#instrument').val();
+        $.getJSON("//api.fxhistoricaldata.com/indicators?timeframe=5minute&expression=close&instruments="+symbol+"&jsoncallback=?",
+            function(data) {
+                $('#entry').val(data['results'][symbol]['data'][0][1]).change();
+                $('#currentPriceTime').text(data['results'][symbol]['data'][0][0]);
             });
+    });
+
+    $('#getPreviousHigh').click(function() {
+        var symbol = $('#instrument').val();
+        $.getJSON("//api.fxhistoricaldata.com/indicators?timeframe=hour&expression=max(high,396)&item_count=1&instruments="+symbol+"&jsoncallback=?",
+            function(data) {
+                $('#exit').val(data['results'][symbol]['data'][0][1]).change();
+            });
+    });
+
+    $('#getPreviousLow').click(function() {
+        var symbol = $('#instrument').val();
+        $.getJSON("//api.fxhistoricaldata.com/indicators?timeframe=hour&expression=min(low,396)&item_count=1&instruments="+symbol+"&jsoncallback=?",
+            function(data) {
+                $('#exit').val(data['results'][symbol]['data'][0][1]).change();
+            });
+    });
+
+    $('#sniperCreate').click(function() {
+        var instrument  = $('#instrument').val();
+        var positionSize= $('#positionSize').val();
+        var rsi         = $('#rsi').val();
+        var expiresIn   = parseInt($('#expiresIn').val(), 10);
+        var timeframe   = 'minute';
+
+        var expression  = $('#txt_expression').val();
+        if (expression === '') {
+            $('#textualExplanation').text('PositionSize and rsi validation mismatch');
+            return;
+        }
+        $('#textualExplanation').text('Enter ' + positionSize + ' on ' + instrument + ' when rsi crosses ' + rsi);
+
+        var url = "http://snipers." + domain + "/snipers/";
+        $.post(url,
+            JSON.stringify({
+                timeframe:      timeframe,
+                instrument:     instrument,
+                expression:     expression,
+                quantity:       positionSize,
+                expires_in:     ( isNaN(expiresIn) ? null : expiresIn )
+            }),
+            function(data, textStatus, jqXHR) {
+                $('#snipers-table').DataTable().ajax.reload();
+            }, 'json').fail(
+                function(jqXHR, textStatus, errorThrown) {
+                    $('#textualExplanation').text('Request Failed: ' + textStatus);
+                });
+    });
+
+    function setExpression() {
+        var timeframe   = $('#timeframe').val();
+        var positionSize= $('#positionSize').val();
+        var rsi         = $('#rsi').val();
+
+        $('#txt_expression').val('');
+
+        if ((positionSize > 0 && rsi > 60) || (positionSize < 0 && rsi < 40)) {
+            $('#textualExplanation').text('PositionSize and rsi validation mismatch');
+            return;
+        }
+
+        var expression  = "rsi(close,14)" + (positionSize > 0 ? ' < ' : ' > ') + rsi + " AND " + timeframe + "(rsi(close,14))" + (positionSize > 0 ? ' < ' : ' > ') + rsi;
+        $('#txt_expression').val(expression);
+    }
+
+    $('#timeframe').change(function() {
+        setExpression();
+    });
+    $('#rsi').change(function() {
+        setExpression();
+    });
+
+    $('.recalculate').change(calculatePositionSize);
+    $('#positionSize').change(calculateMaxLoss);
+    $('.persistValue').change(function() {
+        Cookies.set(this.name, this.value, { expires: 30 });
+    });
+
+    $('.persistValue').each(function(index, obj) {
+        var cookieValue = Cookies.get(obj.name);
+        $(obj).val(cookieValue);
+    });
+
+    var $maxLossCookie = Cookies.get('maxLoss');
+    if ($maxLossCookie) {
+        $('#maxLoss').val($maxLossCookie);
+    }
+
+    function getRatioCurrency() {
+        var symbolCurrency = symbolCurrencyMap[$('#instrument').val()][0];
+        var accountCurrency = $('#accountCurrency').val();
+        if (symbolCurrency === accountCurrency) {
+            return;
+        }
+
+        var symbol = accountCurrency + '_' + symbolCurrency;
+        return symbol;
+    }
+
+    function calculateMaxLoss() {
+        var $positionSize = $('#positionSize').val();
+        var $entry = $('#entry').val();
+        var $exit = $('#exit').val();
+
+        if (!$positionSize || !$entry || !$exit) {
+            return;
+        }
+
+        var $ratioCurrency = getRatioCurrency();
+        if ($ratioCurrency) {
+            $.getJSON("//api.fxhistoricaldata.com/lastclose?instruments="+$ratioCurrency+"&jsoncallback=?",
+                function(data) {
+                    var $ratio = data[$ratioCurrency][1];
+                    var $maxLoss = parseInt($positionSize * ($entry - $exit) / $ratio, 10);
+                    $('#maxLoss').val($maxLoss);
+                    setTextExplanation($entry, $exit, $positionSize, $maxLoss);
+                }
+            );
+        } else {
+            var $maxLoss = parseInt($positionSize * ($entry - $exit), 10);
+            $('#maxLoss').val($maxLoss);
+            setTextExplanation($entry, $exit, $positionSize, $maxLoss);
+        }
+    }
+
+    function setTextExplanation($entry, $exit, $positionSize, $maxLoss) {
+        var $longshort = ($entry > $exit ? 'buy' : 'short');
+        var $instrument = $('#instrument').val();
+        var $accountCurrency = $('#accountCurrency').val();
+        $('#textualExplanation').text('If you ' + $longshort + ' ' + parseInt(Math.abs($positionSize), 10) + ' ' + $instrument + ' at ' + $entry + ', and hit stop loss at ' + $exit + ', your loss will be ' + $maxLoss + ' ' + $accountCurrency);
+    }
+
+    function calculatePositionSize() {
+        var $maxLoss = $('#maxLoss').val();
+        var $entry = $('#entry').val();
+        var $exit = $('#exit').val();
+
+        if (!$maxLoss || !$entry || !$exit) {
+            return;
+        }
+
+        var $ratioCurrency = getRatioCurrency();
+        if ($ratioCurrency) {
+            $.getJSON("//api.fxhistoricaldata.com/lastclose?instruments="+$ratioCurrency+"&jsoncallback=?",
+                function(data) {
+                    var $ratio = data[$ratioCurrency][1];
+                    var $positionSize = parseInt($maxLoss * $ratio / ($entry - $exit), 10) / symbolCurrencyMap[ $('#instrument').val() ][2];
+                    $('#positionSize').val($positionSize);
+                    setTextExplanation($entry, $exit, $positionSize, $maxLoss);
+                    $('#sizePerPoint').val($maxLoss / ($entry-$exit) / symbolCurrencyMap[ $('#instrument').val() ][1] / $ratio  );
+                }
+            );
+        } else {
+            var $positionSize = parseInt($maxLoss / ($entry - $exit), 10);
+            $('#positionSize').val($positionSize);
+            setTextExplanation($entry, $exit, $positionSize, $maxLoss);
+            $('#sizePerPoint').val($maxLoss / ($entry-$exit) / symbolCurrencyMap[ $('#instrument').val() ][1]  );
+        }
+        setExpression();
+    }
+
+    $('#getCurrentPrice').click();
+
+});
         </script>
         <style type="text/css">
 
-            html {
-                font: 90%/1.3 arial,sans-serif;
-                padding:1em;
-                background:#fafafa;
-            }
+html {
+    font: 90%/1.3 arial,sans-serif;
+    padding:1em;
+    background:#fafafa;
+}
 
             body {
                 padding: 0;
@@ -521,8 +535,8 @@
             </fieldset>
         </form>
 
-        <div id="screener" style="width: 90%">
-            <table id="screen-table" class="display">
+        <div id="screener1" style="width: 90%">
+            <table id="screen-table-rsi" class="display">
                 <thead>
                     <tr>
                         <th>Instrument</th>
@@ -533,6 +547,28 @@
                 </thead>
                 <tbody>
                     <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="screener2" style="width: 90%">
+            <table id="screen-percent-ema" class="display">
+                <thead>
+                    <tr>
+                        <th>Instrument</th>
+                        <th>Datetime</th>
+                        <th>Diff</th>
+                        <th>Close</th>
+                        <th>EMA200</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td></td>
                         <td></td>
                         <td></td>
                         <td></td>

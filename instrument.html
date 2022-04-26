@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script type="text/javascript" src="//code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script type="text/javascript" src="js/fxg.js"></script>
+        <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+        <script type="text/javascript">
+            "use strict";
+
+/* charting functions */
+$(document).ready(function() {
+    $('#instrument').change(function() {
+        new TradingView.widget({
+            "autosize": true,
+            "symbol": fxg.getInstrumentInfo(this.value)[3],
+            "interval": "1H",
+            "timezone": "Etc/UTC",
+            "theme": "light",
+            "style": "1",
+            "locale": "uk",
+            "toolbar_bg": "#f1f3f6",
+            "enable_publishing": false,
+            "withdateranges": true,
+            "hide_side_toolbar": false,
+            "details": true,
+            "studies": [
+                {
+                    "id": "MAExp@tv-basicstudies",
+                    "inputs": {
+                        "length": 200
+                    }
+                },{
+                    "id": "RSI@tv-basicstudies",
+                }
+            ],
+            "container_id": "tradingview_cae0d"
+        });
+        $('#trading-view-href').attr('href', 'https://www.tradingview.com/chart/Lwjp7ye6/?symbol=' + fxg.getInstrumentInfo(this.value)[3])
+    });
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const instrument_param = urlParams.get('instrument');
+    if (instrument_param) {
+        $('#instrument').val(instrument_param).trigger('change');
+    }
+});
+
+/* instrument functions */
+$(document).ready(function() {
+    var symbol = $('#instrument').val();
+    $.getJSON("//api.fxhistoricaldata.com/indicators?timeframe=day&expression=tr(),previous(atr(14),1)&instruments="+symbol+"&jsoncallback=?",
+        function(data) {
+            $('#instrument_tr').text("TR(day) = " + data['results'][symbol]['data'][0][1]);
+            $('#instrument_atr14').text("ATR14(day) = " + data['results'][symbol]['data'][0][2]);
+            //$('#currentPriceTime').text(data['results'][symbol]['data'][0][0]);
+        });
+});
+
+/* moneymanagement functions */
+$(document).ready(function() {
+    $('#instrument').select2();
+
+/*
+This is a workaround for a bug in version 4.1.0-rc.0 of select2 when used with jquery 3.6.0
+I suspect this only works if there is one single select2 field on the page
+See:
+  https://stackoverflow.com/questions/25882999/set-focus-to-search-text-field-when-we-click-on-select-2-drop-down
+  https://github.com/select2/select2/issues/5993
+*/
+    $(document).on('select2:open', () => {
+        document.querySelector('.select2-search__field').focus();
+    });
+});
+
+
+/* moneymanagement functions */
+$(document).ready(function() {
+    $('#getCurrentPrice').click(function() {
+        var symbol = $('#instrument').val();
+        $.getJSON("//api.fxhistoricaldata.com/indicators?timeframe=5minute&expression=close&instruments="+symbol+"&jsoncallback=?",
+            function(data) {
+                $('#entry').val(data['results'][symbol]['data'][0][1]).change();
+                //$('#currentPriceTime').text(data['results'][symbol]['data'][0][0]);
+            });
+    });
+
+    $('#getPreviousHigh').click(function() {
+        var symbol = $('#instrument').val();
+        $.getJSON("//api.fxhistoricaldata.com/indicators?timeframe=hour&expression=max(high,396)&item_count=1&instruments="+symbol+"&jsoncallback=?",
+            function(data) {
+                $('#exit').val(data['results'][symbol]['data'][0][1]).change();
+            });
+    });
+
+    $('#getPreviousLow').click(function() {
+        var symbol = $('#instrument').val();
+        $.getJSON("//api.fxhistoricaldata.com/indicators?timeframe=hour&expression=min(low,396)&item_count=1&instruments="+symbol+"&jsoncallback=?",
+            function(data) {
+                $('#exit').val(data['results'][symbol]['data'][0][1]).change();
+            });
+    });
+
+    $('.recalculate').change(calculatePositionSize);
+
+    function calculatePositionSize() {
+        var $maxLoss = $('#maxLoss').val();
+        var $entry = $('#entry').val();
+        var $exit = $('#exit').val();
+
+        if (!$maxLoss || !$entry || !$exit) {
+            return;
+        }
+
+        var instrumentInfo = fxg.getInstrumentInfo($('#instrument').val());
+        var $ratioCurrency = getRatioCurrency(instrumentInfo[0]);
+        if ($ratioCurrency) {
+            $.getJSON("//api.fxhistoricaldata.com/lastclose?instruments="+$ratioCurrency+"&jsoncallback=?",
+                function(data) {
+                    var $ratio = data[$ratioCurrency][1];
+                    var $positionSize = parseInt($maxLoss * $ratio / ($entry - $exit), 10) / instrumentInfo[2];
+                    $('#positionSize').val($positionSize);
+                    //setTextExplanation($entry, $exit, $positionSize, $maxLoss);
+                    $('#sizePerPoint').val($maxLoss / ($entry-$exit) / instrumentInfo[1] / $ratio  );
+                }
+            );
+        } else {
+            var $positionSize = parseInt($maxLoss / ($entry - $exit), 10);
+            $('#positionSize').val($positionSize);
+            //setTextExplanation($entry, $exit, $positionSize, $maxLoss);
+            $('#sizePerPoint').val($maxLoss / ($entry-$exit) / instrumentInfo[1]  );
+        }
+        //setExpression();
+    }
+
+    function getRatioCurrency(symbolCurrency) {
+
+        var accountCurrency = $('#accountCurrency').val();
+        if (symbolCurrency === accountCurrency) {
+            return;
+        }
+
+        var symbol = accountCurrency + '_' + symbolCurrency;
+        return symbol;
+    }
+});
+        </script>
+        <style>
+.container {
+    display: grid;
+    grid-template-columns: 0.9fr 0.1fr;
+    grid-template-rows: 1fr;
+    gap: 0px 0px;
+    grid-auto-flow: row;
+    grid-template-areas:
+        "left right";
+    width: 100%;
+    height: 100%;
+}
+
+.left { grid-area: left; }
+
+.right {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 0.5fr 1fr 1fr 1fr;
+    gap: 0px 0px;
+    grid-template-areas:
+        "account"
+        "instrument"
+        "moneymanagement"
+        "snipers";
+    grid-area: right;
+}
+.account { grid-area: account; }
+.instrument { grid-area: instrument; }
+.moneymanagement { grid-area: moneymanagement; }
+.snipers { grid-area: snipers; }
+
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="left">
+
+                <div class="tradingview-widget-container" style="height: 100%">
+                    <div style="height: 1053px" id="tradingview_cae0d"></div>
+                    <div class="tradingview-widget-copyright"><a id="trading-view-href" href="https://uk.tradingview.com/symbols/EURUSD/?exchange=OANDA" rel="noopener" target="_blank"><span class="blue-text">Chart</span></a> by TradingView</div>
+                </div>
+            </div>
+            <div class="right">
+                <div class="account">
+                    <div>NAV: TODO</div>
+                    <div>Position Value: TODO</div>
+                    <div>Leverage: TODO</div>
+                </div>
+                <div class="instrument">
+                    <select name="instrument" id="instrument">
+                        <option value="AUD_CHF">AUD_CHF</option>
+                        <option value="AUD_JPY">AUD_JPY</option>
+                        <option value="AUD_NZD">AUD_NZD</option>
+                        <option value="AUD_USD">AUD_USD</option>
+                        <option value="CAD_JPY">CAD_JPY</option>
+                        <option value="CHF_JPY">CHF_JPY</option>
+                        <option value="EUR_CAD">EUR_CAD</option>
+                        <option value="EUR_CHF">EUR_CHF</option>
+                        <option value="EUR_GBP">EUR_GBP</option>
+                        <option value="EUR_JPY">EUR_JPY</option>
+                        <option value="EUR_PLN">EUR_PLN</option>
+                        <option value="EUR_NZD">EUR_NZD</option>
+                        <option value="EUR_USD">EUR_USD</option>
+                        <option value="GBP_CHF">GBP_CHF</option>
+                        <option value="GBP_JPY">GBP_JPY</option>
+                        <option value="GBP_NZD">GBP_NZD</option>
+                        <option value="GBP_USD">GBP_USD</option>
+                        <option value="NZD_JPY">NZD_JPY</option>
+                        <option value="NZD_USD">NZD_USD</option>
+                        <option value="USD_CAD">USD_CAD</option>
+                        <option value="USD_CHF">USD_CHF</option>
+                        <option value="USD_JPY">USD_JPY</option>
+                        <option value="XAG_EUR">XAG_EUR</option>
+                        <option value="XAG_USD">XAG_USD</option>
+                        <option value="XAU_EUR">XAU_EUR</option>
+                        <option value="XAU_USD">XAU_USD</option>
+                        <option value="XAU_XAG">XAU_XAG</option>
+                        <option value="XCU_USD">Copper</option>
+                        <option value="AU200_AUD">AUS200</option>
+                        <option value="ES35_EUR">ESP35</option>
+                        <option value="FR40_EUR">FRA40</option>
+                        <option value="DE30_EUR">DE30</option>
+                        <option value="IT40_EUR">IT40</option>
+                        <option value="JP225_USD">JP225</option>
+                        <option value="NAS100_USD">NAS100</option>
+                        <option value="SPX500_USD">SPX500</option>
+                        <option value="UK100_GBP">UK100</option>
+                        <option value="US30_USD">DOW JONES 30</option>
+                        <option value="BCO_USD">UK OIL</option>
+                        <option value="WTICO_USD">US OIL</option>
+                        <option value="XPD_USD">PALLADIUM</option>
+                        <option value="XPT_USD">PLATINUM</option>
+                        <option value="DE10YB_EUR">German 10Y Bund</option>
+                        <option value="NATGAS_USD">NATURAL GAS</option>
+                    </select>
+                    <div id="instrument_atr14"></div>
+                    <div id="instrument_tr"></div>
+                    <div>Percentile: TODO</div>
+                    <div>Position Size: TODO</div>
+                </div>
+                <div class="moneymanagement">
+                    <form>
+                        <label for="entry">Entry</label>
+                        <button type="button" id="getCurrentPrice">Last Known Price</button>
+                        <input type="text" name="entry" id="entry" class="recalculate" />
+                        <span id="currentPriceTime"></span>
+
+                        <label for="exit">Stop Loss</label>
+                        <button type="button" id="getPreviousLow">Long</button>
+                        <button type="button" id="getPreviousHigh">Short</button>
+                        <input type="text" name="exit" id="exit" class="recalculate" />
+
+                        <label for="maxLoss">Max Loss</label>
+                        <select name="accountCurrency" id="accountCurrency" class="recalculate">
+                            <option value="GBP">GBP</option>
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                            <option value="CHF">CHF</option>
+                        </select>
+                        <input type="text" name="maxLoss" id="maxLoss" class="recalculate persistValue" />
+
+                        <label for="positionSize">Position Size</label>
+                        <input type="text" name="positionSize" id="positionSize" />
+
+                        <label for="sizePerPoint">Size per point</label>
+                        <input type="text" name="sizePerPoint" id="sizePerPoint" />
+                    </form>
+                </div>
+                <div class="snipers">
+                    create/list snipers
+                </div>
+            </div>
+    </body>
+</html>
