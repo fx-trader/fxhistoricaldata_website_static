@@ -65,7 +65,7 @@ $(document).ready(function() {
         snipers_table.row('.selected').remove().draw( false );
     } );
 
-    var screen_table_rsi = $('#screen-table-rsi').DataTable( {
+    var screen_rsi = $('#screen-rsi').DataTable( {
         'ajax': {
             'url': 'http://api.fxhistoricaldata.com/screener?expression=rsi(close,14),rsi(close,14)-previous(rsi(close,14),1)&timeframe=week',
             'dataSrc': 'results'
@@ -80,9 +80,24 @@ $(document).ready(function() {
         }]
     });
 
-    var screen_table_rsi = $('#screen-percent-ema').DataTable( {
+    var screen_percent_ema = $('#screen-percent-ema').DataTable( {
         'ajax': {
             'url': 'http://api.fxhistoricaldata.com/screener?expression=abs(close-ema(close,200))/ema(close,200),close,ema(close,200)',
+            'dataSrc': 'results'
+        },
+        'columnDefs': [{
+            'targets': 0,
+            'render': function (data, type, row, meta) {
+                if (type !== 'display')
+                    return data;
+                return "<a href='instrument.html?instrument=" + data + "'>" + data + "</a>"
+            }
+        }]
+    });
+
+    var screen_percent_atr = $('#screen-percent-atr').DataTable( {
+        'ajax': {
+            'url': 'http://api.fxhistoricaldata.com/screener?expression=atr(14)/previous(close,1),close',
             'dataSrc': 'results'
         },
         'columnDefs': [{
@@ -535,8 +550,8 @@ html {
             </fieldset>
         </form>
 
-        <div id="screener1" style="width: 90%">
-            <table id="screen-table-rsi" class="display">
+        <div id="div-screen-rsi" style="width: 90%">
+            <table id="screen-rsi" class="display">
                 <thead>
                     <tr>
                         <th>Instrument</th>
@@ -555,7 +570,7 @@ html {
                 </tbody>
             </table>
         </div>
-        <div id="screener2" style="width: 90%">
+        <div id="div-screen-percent-ema" style="width: 90%">
             <table id="screen-percent-ema" class="display">
                 <thead>
                     <tr>
@@ -569,6 +584,26 @@ html {
                 <tbody>
                     <tr>
                         <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="div-screen-percent-atr" style="width: 90%">
+            <table id="screen-percent-atr" class="display">
+                <thead>
+                    <tr>
+                        <th>Instrument</th>
+                        <th>Datetime</th>
+                        <th>Diff</th>
+                        <th>Close</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
                         <td></td>
                         <td></td>
                         <td></td>
